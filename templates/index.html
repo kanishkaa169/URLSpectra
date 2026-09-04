@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URLSpectra - Web Threat Analysis</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <section class="hero">
+            <h1>🔍🛡️ URLSpectra</h1>
+            <p>Web Threat & Phishing Analysis system</p>
+            <p class="developer-credit">Developed by Kanishkaa.K | Cybersecurity</p>
+            </section>
+
+        <section class="analyzer">
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="urlInput"
+                    placeholder="Enter a URL to analyze"
+                >
+
+                <button onclick="analyzeURL()">
+                    Analyze URL
+                </button>
+                <button onclick="clearAnalysis()" class="clear-btn">
+                    Clear
+                </button>
+            </div>
+        </section>
+
+        <div id="result" class="result-card">
+    <div class="result-header">
+        <h2>Analysis Result</h2>
+        <span id="risk-badge" class="risk-badge">---</span>
+    </div>
+
+    <div class="result-details">
+        <div class="result-item">
+            <span>URL</span>
+            <strong id="result-url">---</strong>
+        </div>
+
+        <div class="result-item">
+            <span>Risk Score</span>
+            <strong id="result-score">---</strong>
+        </div>
+
+        <div class="result-item">
+            <span>Risk Level</span>
+            <strong id="result-level">---</strong>
+        </div>
+    </div>
+</div>
+
+    </main>
+
+    <script>
+        async function analyzeURL() {
+
+            const url = document.getElementById("urlInput").value.trim();
+            const result = document.getElementById("result");
+
+            if (!url) {
+                result.innerHTML = "⚠️ Please enter a URL.";
+                return;
+            }
+
+            result.innerHTML = "🔍 Analyzing...";
+
+            try {
+
+                const response = await fetch("/analyze", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        url: url
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    result.innerHTML = "⚠️ " + data.error;
+                    return;
+                }
+                if (data.risk_level === "INVALID") {
+    result.innerHTML = `
+        <h2>Invalid URL</h2>
+        <p><strong>URL:</strong> ${data.url}</p>
+
+        <div class="recommendation">
+            <span>Security Recommendation</span>
+            <strong>❌ Please enter a valid HTTP or HTTPS URL.</strong>
+        </div>
+    `;
+    return;
+}
+
+                result.innerHTML = `
+                    <h2>Analysis Result</h2>
+                    <p><strong>URL:</strong> ${data.url}</p>
+                    <div class="risk-info">
+                        <div>
+                            <span>Risk Score</span>
+                            <strong>${data.risk_score}</strong>
+                        </div>
+
+                        <div>
+                            <span>Risk Level</span>
+                            <strong class="risk-${data.risk_level.toLowerCase()}">${data.risk_level}</strong>
+                        </div>
+                    </div>
+                    <div class="attack-intent">
+                        <span>Possible Attack Intent</span>
+                        <strong>
+                            ${
+                                data.attack_intents && data.attack_intents.length > 0
+                                    ? data.attack_intents.join(", ")
+                                    : "None detected"
+                            }
+                        </strong>
+                    </div>
+                    <div class="analysis-time">
+                        <span>Analyzed At</span>
+                        <strong>${data.analyzed_at}</strong>
+                    </div>
+                    <div class="recommendation">
+                        <span>Security Recommendation</span>
+                        <strong>
+                         ${
+    data.risk_level === "INVALID"
+        ? "❌ Please enter a valid HTTP or HTTPS URL."
+        : data.risk_level === "HIGH"
+        ? "⚠️ Avoid visiting this URL."
+        : data.risk_level === "MEDIUM"
+        ? "⚠️ Proceed with caution."
+        : "✅ URL appears relatively safe."
+}   
+                        </strong>
+                    </div>
+                `;
+            } catch (error) {
+
+                result.innerHTML =
+                    "❌ Unable to connect to PhishGuard backend.";
+
+            }
+        }
+        function clearAnalysis() {
+    document.getElementById("urlInput").value = "";
+    document.getElementById("result").innerHTML =
+        "<p>Enter a URL above to begin analysis.</p>";
+}
+    </script>
+
+</body>
+</html>
