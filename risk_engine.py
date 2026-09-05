@@ -23,3 +23,7 @@ def get_risk_level(score):
         return "MEDIUM"
     else:
         return "HIGH"
+
+def add_warning(message, points):
+    print("⚠️ Warning:", message)
+    return points

@@ -1,6 +1,6 @@
 import ipaddress
 from urllib.parse import urlparse
-from risk_engine import RiskEngine, get_risk_level
+from risk_engine import get_risk_level, add_warning
 SUSPICIOUS_WORDS = [
     "login",
     "verify",
@@ -71,7 +71,6 @@ SUSPICIOUS_PORTS = [
 
 
 def analyze_url(url):
-    engine = RiskEngine()
     risk_score = 0
 
     parsed = urlparse(url)
